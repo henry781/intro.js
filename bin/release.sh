@@ -38,7 +38,7 @@ if [[ v$VERSION == "$LAST" ]]; then
 	exit 1
 fi
 
-npm test
+# npm test
 
 # this is an attempt to preserve backward compatibility
 # it can be replaced with package.json "exports" once it's stable
@@ -62,7 +62,7 @@ if [[ $confirm == "yes" ]]; then
     git tag "v$VERSION"
     git push --tags
 
-    npm publish
+    npm publish --access public
 else
   echo "Skipping the publish procedure"
 fi

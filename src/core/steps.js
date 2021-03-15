@@ -1,6 +1,7 @@
 import forEach from "../util/forEach";
 import showElement from "./showElement";
 import exitIntro from "./exitIntro";
+import toPromise from "../util/toPromise";
 
 /**
  * Go to specific step of introduction
@@ -12,7 +13,7 @@ export function goToStep(step) {
   //because steps starts with zero
   this._currentStep = step - 2;
   if (typeof this._introItems !== "undefined") {
-    nextStep.call(this);
+    return nextStep.call(this);
   }
 }
 
@@ -25,7 +26,7 @@ export function goToStep(step) {
 export function goToStepNumber(step) {
   this._currentStepNumber = step;
   if (typeof this._introItems !== "undefined") {
-    nextStep.call(this);
+    return nextStep.call(this);
   }
 }
 
@@ -54,32 +55,36 @@ export function nextStep() {
   }
 
   const nextStep = this._introItems[this._currentStep];
-  let continueStep = true;
 
-  if (typeof this._introBeforeChangeCallback !== "undefined") {
-    continueStep = this._introBeforeChangeCallback.call(
-      this,
-      nextStep && nextStep.element
-    );
-  }
+  return Promise.resolve()
+      .then(() => {
+        if (typeof this._introBeforeChangeCallback !== "undefined") {
+          return toPromise(this._introBeforeChangeCallback.call(
+              this,
+              nextStep && nextStep.element
+          ));
+        }
+        return true;
+      })
+      .then((continueStep) => {
+        // if `onbeforechange` returned `false`, stop displaying the element
+        if (continueStep === false) {
+          --this._currentStep;
+          return false;
+        }
 
-  // if `onbeforechange` returned `false`, stop displaying the element
-  if (continueStep === false) {
-    --this._currentStep;
-    return false;
-  }
+        if (this._introItems.length <= this._currentStep) {
+          //end of the intro
+          //check if any callback is defined
+          let introComplete = Promise.resolve();
+          if (typeof this._introCompleteCallback === "function") {
+            introComplete = toPromise(this._introCompleteCallback.call(this));
+          }
+          return introComplete.then(() => exitIntro.call(this, this._targetElement));
+        }
 
-  if (this._introItems.length <= this._currentStep) {
-    //end of the intro
-    //check if any callback is defined
-    if (typeof this._introCompleteCallback === "function") {
-      this._introCompleteCallback.call(this);
-    }
-    exitIntro.call(this, this._targetElement);
-    return;
-  }
-
-  showElement.call(this, nextStep);
+        return showElement.call(this, nextStep);
+      });
 }
 
 /**
@@ -98,22 +103,26 @@ export function previousStep() {
   --this._currentStep;
 
   const nextStep = this._introItems[this._currentStep];
-  let continueStep = true;
 
-  if (typeof this._introBeforeChangeCallback !== "undefined") {
-    continueStep = this._introBeforeChangeCallback.call(
-      this,
-      nextStep && nextStep.element
-    );
-  }
+  return Promise.resolve()
+      .then(() => {
+        if (typeof this._introBeforeChangeCallback !== "undefined") {
+          return toPromise(this._introBeforeChangeCallback.call(
+              this,
+              nextStep && nextStep.element
+          ));
+        }
+        return true;
+      })
+      .then((continueStep) => {
 
-  // if `onbeforechange` returned `false`, stop displaying the element
-  if (continueStep === false) {
-    ++this._currentStep;
-    return false;
-  }
-
-  showElement.call(this, nextStep);
+        // if `onbeforechange` returned `false`, stop displaying the element
+        if (continueStep === false) {
+          ++this._currentStep;
+          return false;
+        }
+        return showElement.call(this, nextStep);
+      });
 }
 
 /**
