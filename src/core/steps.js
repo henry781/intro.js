@@ -61,7 +61,8 @@ export function nextStep() {
         if (typeof this._introBeforeChangeCallback !== "undefined") {
           return toPromise(this._introBeforeChangeCallback.call(
               this,
-              nextStep && nextStep.element
+              nextStep && nextStep.element,
+              nextStep
           ));
         }
         return true;
@@ -109,7 +110,8 @@ export function previousStep() {
         if (typeof this._introBeforeChangeCallback !== "undefined") {
           return toPromise(this._introBeforeChangeCallback.call(
               this,
-              nextStep && nextStep.element
+              nextStep && nextStep.element,
+              nextStep
           ));
         }
         return true;

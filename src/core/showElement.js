@@ -61,7 +61,7 @@ export default function _showElement(targetElement) {
   return Promise.resolve()
       .then(() => {
         if (typeof this._introChangeCallback !== "undefined") {
-          this._introChangeCallback.call(this, targetElement.element);
+          this._introChangeCallback.call(this, targetElement.element, targetElement);
         }
       })
       .then( () => {
@@ -511,7 +511,7 @@ export default function _showElement(targetElement) {
       })
       .then(() => {
         if (typeof this._introAfterChangeCallback !== "undefined") {
-          return toPromise(this._introAfterChangeCallback.call(this, targetElement.element));
+          return toPromise(this._introAfterChangeCallback.call(this, targetElement.element, targetElement));
         }
       });
 }
